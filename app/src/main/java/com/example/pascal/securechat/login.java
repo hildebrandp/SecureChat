@@ -129,6 +129,8 @@ public class login extends Activity{
                         Intent returnIntent = new Intent();
                         returnIntent.putExtra("result", result);
                         setResult(RESULT_OK, returnIntent);
+
+                        revokeKey();
                         finish();
                     }else{
 
@@ -174,6 +176,10 @@ public class login extends Activity{
         return value;
     }
 
+    private void revokeKey(){
+
+        new acclogin().execute(useremail.getText().toString(), encryptedPassword);
+    }
 
     @Override
     public void onBackPressed() {
@@ -197,6 +203,97 @@ public class login extends Activity{
                 doubleBackToExitPressedOnce=false;
             }
         }, 2000);
+    }
+
+    private class revokePublicKey extends AsyncTask<String, Integer, Double> {
+
+        protected Double doInBackground(String... params) {
+            // TODO Auto-generated method stub
+            postData(params[0],params[1]);
+            return null;
+        }
+
+        protected void onPostExecute(Double result){
+            //Toast.makeText(getApplicationContext(), "command sent", Toast.LENGTH_LONG).show();
+        }
+        protected void onProgressUpdate(Integer... progress){
+        }
+
+        public void postData(String valueIWantToSend1, String valueIWantToSend2 ) {
+
+
+            // Create a new HttpClient and Post Header
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://schisskiss.no-ip.biz/SecureChat/revokekey.php");
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                nameValuePairs.add(new BasicNameValuePair("useremail", valueIWantToSend1));
+                nameValuePairs.add(new BasicNameValuePair("userpassword", valueIWantToSend2));
+                nameValuePairs.add(new BasicNameValuePair("key", "16485155612574852"));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                InputStream is = entity.getContent();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                StringBuilder sb = new StringBuilder();
+
+                String line = null;
+                try {
+                    while ((line = reader.readLine()) != null) {
+                        sb.append((line));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                resp = sb.toString();
+            } catch (ClientProtocolException e) {
+                // TODO Auto-generated catch block
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+            }
+
+            runOnUiThread(new Runnable() {
+                public void run() {
+
+                    String[] splitResult = String.valueOf(resp).split("::");
+
+                    if(splitResult[0].equals("login_false")) {
+
+                        Toast.makeText(getApplicationContext(), "Key Revoke failed", Toast.LENGTH_LONG).show();
+                        revokeKey();
+
+                    }else if(splitResult[0].equals("login_true")){
+
+                        if(splitResult[0].equals("delete_true")){
+
+                            Toast.makeText(getApplicationContext(), "Key revoke successful", Toast.LENGTH_LONG).show();
+                        }else{
+
+                            Toast.makeText(getApplicationContext(), "Key Revoke failed", Toast.LENGTH_LONG).show();
+                            revokeKey();
+                        }
+
+                    }else {
+
+                        Toast.makeText(getApplicationContext(), "Error" , Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+
+
+        }
+
     }
 
     private class acclogin extends AsyncTask<String, Integer, Double> {
@@ -283,6 +380,8 @@ public class login extends Activity{
                         Intent returnIntent = new Intent();
                         returnIntent.putExtra("result", result);
                         setResult(RESULT_OK, returnIntent);
+
+                        revokeKey();
                         finish();
 
                     }else {

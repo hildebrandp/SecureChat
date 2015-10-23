@@ -3,6 +3,7 @@ package com.example.pascal.securechat;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -15,9 +16,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -25,7 +43,7 @@ public class MainActivity extends AppCompatActivity
     public static SharedPreferences user;
     public static SharedPreferences.Editor editor;
 
-
+    private String resp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +76,9 @@ public class MainActivity extends AppCompatActivity
         if (user.getBoolean("firstrun", true)) {
 
             openfirststart();
+        }else{
+            //get public key an test if it´s ok!!!
+            new checkPublicKey().execute(user.getString("USER_NAME",""), user.getString("USER_PASSWORD",""),"publickey");
         }
 
 
@@ -78,7 +99,7 @@ public class MainActivity extends AppCompatActivity
                 if(result.equals("true")){
 
                 }else{
-
+                    finish();
                 }
             }
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -134,6 +155,95 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-    
 
+    private class checkPublicKey extends AsyncTask<String, Integer, Double> {
+
+        protected Double doInBackground(String... params) {
+            // TODO Auto-generated method stub
+            postData(params[0],params[1],params[2]);
+            return null;
+        }
+
+        protected void onPostExecute(Double result){
+            //Toast.makeText(getApplicationContext(), "command sent", Toast.LENGTH_LONG).show();
+        }
+        protected void onProgressUpdate(Integer... progress){
+        }
+
+        public void postData(String valueIWantToSend1, String valueIWantToSend2 , String valueIWantToSend3) {
+
+
+            // Create a new HttpClient and Post Header
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost("http://schisskiss.no-ip.biz/SecureChat/revokekey.php");
+
+            try {
+                // Add your data
+                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+                nameValuePairs.add(new BasicNameValuePair("useremail", valueIWantToSend1));
+                nameValuePairs.add(new BasicNameValuePair("userpassword", valueIWantToSend2));
+                nameValuePairs.add(new BasicNameValuePair("userkey", valueIWantToSend3));
+                nameValuePairs.add(new BasicNameValuePair("key", "16485155612574852"));
+                httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+                // Execute HTTP Post Request
+                HttpResponse response = httpclient.execute(httppost);
+                HttpEntity entity = response.getEntity();
+                InputStream is = entity.getContent();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                StringBuilder sb = new StringBuilder();
+
+                String line = null;
+                try {
+                    while ((line = reader.readLine()) != null) {
+                        sb.append((line));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                resp = sb.toString();
+            } catch (ClientProtocolException e) {
+                // TODO Auto-generated catch block
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+            }
+
+            runOnUiThread(new Runnable() {
+                public void run() {
+
+                    String[] splitResult = String.valueOf(resp).split("::");
+
+                    if(splitResult[0].equals("login_false")) {
+
+                        //Toast.makeText(getApplicationContext(), "Key Revoke failed", Toast.LENGTH_LONG).show();
+
+                    }else if(splitResult[0].equals("login_true")){
+
+                        if(splitResult[0].equals("key_true")){
+
+                            //Toast.makeText(getApplicationContext(), "Key revoke successful", Toast.LENGTH_LONG).show();
+                        }else{
+                            openfirststart();
+                            Toast.makeText(getApplicationContext(), "Wrong Key!", Toast.LENGTH_LONG).show();
+
+                        }
+
+                    }else {
+
+                        //Toast.makeText(getApplicationContext(), "Error" , Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
+
+
+        }
+
+    }
 }
