@@ -40,9 +40,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 
-/**
- * Created by Pascal on 22.10.2015.
- */
+
 public class login extends Activity{
 
     private EditText useremail;

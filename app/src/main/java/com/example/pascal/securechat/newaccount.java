@@ -39,9 +39,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 
-/**
- * Created by Pascal on 22.10.2015.
- */
+
 public class newaccount extends Activity {
 
     private EditText username;

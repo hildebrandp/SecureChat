@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        user = getSharedPreferences("myapplab.securechat", MODE_PRIVATE);
+        editor = user.edit();
+
         showuseremail = (TextView)findViewById(R.id.showuseremail);
         showusername = (TextView)findViewById(R.id.showusername);
 
@@ -67,16 +70,16 @@ public class MainActivity extends AppCompatActivity{
         setSupportActionBar(toolbar);
 
         drawerLayoutgesamt = (DrawerLayout) findViewById(R.id.drawerlayoutgesamt);
-        drawerToggle = new ActionBarDrawerToggle(MainActivity.this,drawerLayoutgesamt,R.string.auf, R.string.zu);
+        drawerToggle = new ActionBarDrawerToggle(MainActivity.this, drawerLayoutgesamt,R.string.auf, R.string.zu);
         drawerLayoutgesamt.setDrawerListener(drawerToggle);
 
-        navigationView = (NavigationView)findViewById(R.id.navView);
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener(){
+        navigationView = (NavigationView) findViewById(R.id.navView);
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
 
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
 
-                switch (item.getItemId()){
+                switch (item.getItemId()) {
                     case R.id.nav_contacts:
                         break;
                     case R.id.nav_chats:
@@ -111,9 +114,6 @@ public class MainActivity extends AppCompatActivity{
         drawerToggle.syncState();
 
 
-        user = getSharedPreferences("myapplab.securechat", MODE_PRIVATE);
-        editor = user.edit();
-
         if (user.getBoolean("firstrun", true)) {
 
             openfirststart();
@@ -134,6 +134,7 @@ public class MainActivity extends AppCompatActivity{
     }
 
     private void updateuserinfo(){
+
         showusername.setText(user.getString("USER_NAME","Error loading Data"));
         showuseremail.setText(user.getString("USER_EMAIL", "Error loading Data"));
     }
