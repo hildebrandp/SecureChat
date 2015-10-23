@@ -14,6 +14,8 @@
                 android:title="Sicherheit" />
             <item android:id="@+id/nav_changedata" android:icon="@android:drawable/ic_secure"
                 android:title="Eigene Daten" />
+            <item android:id="@+id/nav_logout" android:icon="@android:drawable/ic_secure"
+                android:title="Ausloggen" />
         </menu>
     </item>
 

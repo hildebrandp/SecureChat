@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.internal.view.menu.MenuView;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
@@ -39,6 +41,9 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    public TextView showusername;
+    public TextView showuseremail;
 
     public static SharedPreferences user;
     public static SharedPreferences.Editor editor;
@@ -70,6 +75,9 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        showuseremail = (TextView)navigationView.findViewById(R.id.showusername);
+        showusername = (TextView)navigationView.findViewById(R.id.showusername);
+
         user = getSharedPreferences("myapplab.securechat", MODE_PRIVATE);
         editor = user.edit();
 
@@ -77,6 +85,8 @@ public class MainActivity extends AppCompatActivity
 
             openfirststart();
         }else{
+            //update userinformation on menu
+            updateuserinfo();
             //get public key an test if it´s ok!!!
             new checkPublicKey().execute(user.getString("USER_NAME",""), user.getString("USER_PASSWORD",""),"publickey");
         }
@@ -85,8 +95,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void openfirststart(){
+
         Intent i = new Intent(this, login.class);
         startActivityForResult(i, 1);
+    }
+
+    private void updateuserinfo(){
+
+        showusername.setText(user.getString("USER_NAME","Error loading Data"));
+        showuseremail.setText(user.getString("USER_EMAIL","Error loading Data"));
     }
 
     @Override
@@ -97,7 +114,8 @@ public class MainActivity extends AppCompatActivity
                 String result=data.getStringExtra("result");
 
                 if(result.equals("true")){
-
+                    //update userinformation on menu
+                   updateuserinfo();
                 }else{
                     finish();
                 }
@@ -149,6 +167,16 @@ public class MainActivity extends AppCompatActivity
 
         } else if (id == R.id.nav_secure) {
 
+        }else if (id == R.id.nav_logout) {
+            editor.putString("USER_ID", "");
+            editor.putString("USER_NAME", "");
+            editor.putString("USER_EMAIL", "");
+            editor.putString("USER_PHONENUMBER", "");
+            editor.putString("USER_PASSWORD", "");
+            editor.putBoolean("firstrun", true);
+            editor.commit();
+
+            //Implement Key Revoke
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

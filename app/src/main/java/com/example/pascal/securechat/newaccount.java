@@ -109,7 +109,7 @@ public class newaccount extends Activity {
         }else if(userpassword2.equals("")){
             Toast.makeText(getApplicationContext(), "Empty second Password", Toast.LENGTH_LONG).show();
             return false;
-        }else if(!userpassword1.equals(userpassword2)){
+        }else if(!userpassword1.getText().toString().equals(userpassword2.getText().toString())){
             Toast.makeText(getApplicationContext(), "Passwords not equal!", Toast.LENGTH_LONG).show();
             return false;
         }else{

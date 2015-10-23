@@ -130,7 +130,7 @@ public class login extends Activity{
                         returnIntent.putExtra("result", result);
                         setResult(RESULT_OK, returnIntent);
 
-                        revokeKey();
+                        new acclogin().execute(user.getString("USER_NAME", ""), user.getString("USER_PASSWORD",""));
                         finish();
                     }else{
 
@@ -362,7 +362,6 @@ public class login extends Activity{
                     if(splitResult[0].equals("login_false")) {
 
                         Toast.makeText(getApplicationContext(), "Login not Successful", Toast.LENGTH_LONG).show();
-                        useremail.setText("");
 
                     }else if(splitResult[0].equals("login_true")){
 
