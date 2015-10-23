@@ -53,10 +53,10 @@ public class login extends Activity{
     public static SharedPreferences user;
     public static SharedPreferences.Editor editor;
 
-    private boolean doubleBackToExitPressedOnce = false;
 
     private String resp;
     private String result = "false";
+    private boolean doubleBackToExitPressedOnce = false;
 
     //String for Pencrypted Password and String for Encrypting
     private String encryptedPassword;

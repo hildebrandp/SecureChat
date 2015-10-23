@@ -5,7 +5,8 @@
         <item android:id="@+id/nav_contacts" android:icon="@android:drawable/ic_menu_sort_alphabetically"
             android:title="Kontakte" />
         <item android:id="@+id/nav_chats" android:icon="@android:drawable/ic_menu_send"
-            android:title="Nachrichten" />
+            android:title="Nachrichten"
+            android:checked="true"/>
     </group>
 
     <item android:title="Einstellungen">
