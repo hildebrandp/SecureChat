@@ -1,15 +1,23 @@
 package com.example.pascal.securechat;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import org.spongycastle.util.io.pem.PemObject;
+import org.spongycastle.util.io.pem.PemWriter;
+
+import java.io.IOException;
+import java.io.StringWriter;
 import java.security.KeyPair;
 
 import crypto.RSA;
@@ -17,21 +25,15 @@ import crypto.Crypto;
 
 public class newKey extends AppCompatActivity {
 
-    private Button btncreatekey;
-    private Button btnrecievekey;
-    private Button btnenterkey;
-    private Button btnenterkeybluetooth;
-    private Button btnenterkeynfc;
-    private Button btnapplyenterkey;
-
-    private EditText txtpublickey;
-    private EditText txtprivatekey;
+    private static Button btncreatekey;
+    private static Button btnrecievekey;
 
     private boolean doubleBackToExitPressedOnce = false;
     private String result = "false";
 
     public static SharedPreferences mPreferences;
     public static SharedPreferences.Editor editor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,21 +45,40 @@ public class newKey extends AppCompatActivity {
 
         btncreatekey = (Button)findViewById(R.id.btncreatekey);
         btnrecievekey = (Button)findViewById(R.id.btnrecievekey);
-        btnenterkey = (Button)findViewById(R.id.btnenterkey);
-        btnenterkeynfc = (Button)findViewById(R.id.btnenterkeynfc);
-        btnenterkeybluetooth = (Button)findViewById(R.id.btnenterkeybluetooth);
-        btnapplyenterkey = (Button)findViewById(R.id.btnapplyenterkey);
-
-        txtpublickey = (EditText)findViewById(R.id.edtenterpublickey);
-        txtprivatekey = (EditText)findViewById(R.id.edtenterprivatekey);
 
         btncreatekey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 final KeyPair keyPair = RSA.generate();
-                Crypto.writePrivateKeyToPreferences(keyPair.getPrivate());
-                Crypto.writePublicKeyToPreferences(keyPair.getPublic());
+
+                StringWriter privateStringWriter = new StringWriter();
+
+                try {
+                    PemWriter pemWriter = new PemWriter(privateStringWriter);
+                    pemWriter.writeObject(new PemObject("PRIVATE KEY", keyPair.getPrivate().getEncoded()));
+                    pemWriter.flush();
+                    pemWriter.close();
+                    mPreferences.edit().putString("RSA_PRIVATE_KEY", privateStringWriter.toString()).commit();
+
+                } catch (IOException e) {
+                    Log.e("RSA", e.getMessage());
+                    e.printStackTrace();
+                }
+
+                StringWriter publicStringWriter = new StringWriter();
+
+                try {
+                    PemWriter pemWriter = new PemWriter(publicStringWriter);
+                    pemWriter.writeObject(new PemObject("PUBLIC KEY", keyPair.getPublic().getEncoded()));
+                    pemWriter.flush();
+                    pemWriter.close();
+                    mPreferences.edit().putString("RSA_PUBLIC_KEY", publicStringWriter.toString()).commit();
+
+                } catch (IOException e) {
+                    Log.e("RSA", e.getMessage());
+                    e.printStackTrace();
+                }
 
                 result = "true";
                 Intent returnIntent = new Intent();
@@ -71,42 +92,30 @@ public class newKey extends AppCompatActivity {
         btnrecievekey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContentView(R.layout.newkey_layout);
+                startActivity();
 
             }
         });
 
-        btnenterkey.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setContentView(R.layout.enterkey_layout);
 
-            }
-        });
 
-        btnenterkeynfc.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Create Class for recieving Key via NFC
 
-            }
-        });
 
-        btnenterkeybluetooth.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Create Class for recieving Key via Bluetooth
+    }
 
-            }
-        });
+    private void startActivity(){
+        Intent i = new Intent(this, recievekey.class);
+        startActivityForResult(i, 1);
+    }
 
-        btnapplyenterkey.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(txtpublickey.getText().toString() != "" && txtprivatekey.getText().toString() != ""){
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-                    mPreferences.edit().putString("RSA_PUBLIC_KEY",txtpublickey.getText().toString()).commit();
-                    mPreferences.edit().putString("RSA_PRIVATE_KEY", txtprivatekey.getText().toString()).commit();
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                String result=data.getStringExtra("result");
+
+                if(result.equals("true")){
 
                     result = "true";
                     Intent returnIntent = new Intent();
@@ -114,14 +123,16 @@ public class newKey extends AppCompatActivity {
                     setResult(RESULT_OK, returnIntent);
 
                     finish();
+                }else{
+
+                    Toast.makeText(this, "You need a Key", Toast.LENGTH_SHORT).show();
                 }
-
             }
-        });
-
-    }
-
-
+            if (resultCode == Activity.RESULT_CANCELED) {
+                //Write your code if there's no result
+            }
+        }
+    }//onActivityResult
 
     @Override
     public void onBackPressed() {

@@ -9,7 +9,6 @@ import org.spongycastle.util.io.pem.PemObject;
 import org.spongycastle.util.io.pem.PemWriter;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -18,7 +17,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 
-
+/**
+ * Created by javiermanzanomorilla on 04/01/15.
+ */
 public class Crypto {
 
     public static SharedPreferences mPreferences;
@@ -28,12 +29,12 @@ public class Crypto {
         mPreferences = context.getSharedPreferences("myapplab.securechat", 0);
     }
 
-    public static void writePublicKeyToPreferences(Key key) {
+    public static void writePublicKeyToPreferences(KeyPair key) {
         StringWriter publicStringWriter = new StringWriter();
 
         try {
             PemWriter pemWriter = new PemWriter(publicStringWriter);
-            pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getEncoded()));
+            pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getPublic().getEncoded()));
             pemWriter.flush();
             pemWriter.close();
             mPreferences.edit().putString("RSA_PUBLIC_KEY", publicStringWriter.toString()).commit();
@@ -44,11 +45,11 @@ public class Crypto {
         }
     }
 
-    public static void writePrivateKeyToPreferences(Key key) {
+    public static void writePrivateKeyToPreferences(KeyPair keyPair) {
         StringWriter privateStringWriter = new StringWriter();
         try {
             PemWriter pemWriter = new PemWriter(privateStringWriter);
-            pemWriter.writeObject(new PemObject("PRIVATE KEY", key.getEncoded()));
+            pemWriter.writeObject(new PemObject("PRIVATE KEY", keyPair.getPrivate().getEncoded()));
             pemWriter.flush();
             pemWriter.close();
             mPreferences.edit().putString("RSA_PRIVATE_KEY", privateStringWriter.toString()).commit();

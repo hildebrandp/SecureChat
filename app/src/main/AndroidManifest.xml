@@ -38,6 +38,16 @@
             android:theme="@style/Theme.AppCompat.Dialog">
         </activity>
 
+        <activity
+            android:name=".recievekey"
+            android:theme="@style/Theme.AppCompat.Dialog">
+        </activity>
+
+        <activity
+            android:name=".enterkey"
+            android:theme="@style/Theme.AppCompat.Dialog">
+        </activity>
+
     </application>
 
 </manifest>

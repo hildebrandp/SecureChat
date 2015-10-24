@@ -90,8 +90,6 @@ public class MainActivity extends AppCompatActivity{
                         break;
                     case R.id.nav_logout:
 
-                        Toast.makeText(getApplicationContext(), "Login Successful", Toast.LENGTH_LONG).show();
-
                         editor.putString("USER_ID", "");
                         editor.putString("USER_NAME", "");
                         editor.putString("USER_EMAIL", "");
@@ -99,6 +97,7 @@ public class MainActivity extends AppCompatActivity{
                         editor.putString("USER_PASSWORD", "");
                         editor.putBoolean("firstrun", true);
                         editor.commit();
+                        openfirststart();
 
                         break;
                 }
@@ -114,16 +113,23 @@ public class MainActivity extends AppCompatActivity{
         drawerToggle.syncState();
 
 
-        if (user.getBoolean("firstrun", true)) {
+        if(user.getBoolean("firstrun", true)) {
 
             openfirststart();
         }else{
             //update userinformation on menu
             updateuserinfo();
             //get public key an test if it´s ok!!!
-            new checkPublicKey().execute(user.getString("USER_NAME",""), user.getString("USER_PASSWORD",""),"publickey");
+            new checkPublicKey().execute(user.getString("USER_NAME",""), user.getString("USER_PASSWORD",""), user.getString("RSA_PUBLIC_KEY",null));
         }
 
+        if(user.getString("USER_PRIVATE_KEY","").equals("")){
+            createnewkey();
+        }
+
+        //
+        //Create Class for sending contact numbers
+        //
 
     }
 
@@ -166,6 +172,7 @@ public class MainActivity extends AppCompatActivity{
                 if (result.equals("true")) {
 
                     Toast.makeText(getApplicationContext(), "New Key Saved", Toast.LENGTH_LONG).show();
+
                 } else {
                     Toast.makeText(getApplicationContext(), "You need a Key", Toast.LENGTH_LONG).show();
                     createnewkey();
@@ -301,6 +308,10 @@ public class MainActivity extends AppCompatActivity{
                             //Toast.makeText(getApplicationContext(), "Key revoke successful", Toast.LENGTH_LONG).show();
                         }else{
                             openfirststart();
+                            editor.putString("RSA_PRIVATE_KEY", "");
+                            editor.putString("RSA_PUBLIC_KEY", "");
+                            editor.putBoolean("firstrun", true);
+                            editor.commit();
                             Toast.makeText(getApplicationContext(), "Wrong Key!", Toast.LENGTH_LONG).show();
 
                         }
