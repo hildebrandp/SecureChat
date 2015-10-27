@@ -31,7 +31,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -39,6 +38,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
+import crypto.AESHelper;
 
 
 public class login extends Activity{
@@ -58,7 +58,6 @@ public class login extends Activity{
 
     //String for Pencrypted Password and String for Encrypting
     private String encryptedPassword;
-    private static String cryptoPass = "158564261646132185";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,7 +79,12 @@ public class login extends Activity{
             public void onClick(View v) {
 
                 if(checkinput()){
-                    encryptedPassword = encryptIt(userpassword.getText().toString());
+
+                    try {
+                        encryptedPassword = AESHelper.encrypt(MainActivity.seedValue, userpassword.getText().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     new acclogin().execute(useremail.getText().toString(), encryptedPassword);
                 }
             }
@@ -141,42 +145,10 @@ public class login extends Activity{
         }
     }//onActivityResult
 
-    public static String encryptIt(String value) {
-        try {
-            DESKeySpec keySpec = new DESKeySpec(cryptoPass.getBytes("UTF8"));
-            SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
-            SecretKey key = keyFactory.generateSecret(keySpec);
-
-            byte[] clearText = value.getBytes("UTF8");
-            // Cipher is not thread safe
-            Cipher cipher = Cipher.getInstance("DES");
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-
-            String encrypedValue = Base64.encodeToString(cipher.doFinal(clearText), Base64.DEFAULT);
-
-            return encrypedValue;
-
-        } catch (InvalidKeyException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (InvalidKeySpecException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (BadPaddingException e) {
-            e.printStackTrace();
-        } catch (NoSuchPaddingException e) {
-            e.printStackTrace();
-        } catch (IllegalBlockSizeException e) {
-            e.printStackTrace();
-        }
-        return value;
-    }
 
     private void revokeKey(){
 
-        new acclogin().execute(useremail.getText().toString(), encryptedPassword);
+        new revokePublicKey().execute(useremail.getText().toString(), encryptedPassword);
     }
 
     @Override
@@ -378,7 +350,7 @@ public class login extends Activity{
                         returnIntent.putExtra("result", result);
                         setResult(RESULT_OK, returnIntent);
 
-                        revokeKey();
+                        //revokeKey();
                         finish();
 
                     }else {

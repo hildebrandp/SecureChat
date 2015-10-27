@@ -3,6 +3,9 @@ package crypto;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.example.pascal.securechat.MainActivity;
+
 import org.spongycastle.util.Arrays;
 import org.spongycastle.util.encoders.Base64;
 import org.spongycastle.util.io.pem.PemObject;
@@ -17,13 +20,14 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 
-/**
- * Created by javiermanzanomorilla on 04/01/15.
- */
+
 public class Crypto {
 
     public static SharedPreferences mPreferences;
     public static SharedPreferences.Editor editor;
+
+    private static String encryptedKey;
+    private static String decryptedKey;
 
     public static void init(Context context) {
         mPreferences = context.getSharedPreferences("myapplab.securechat", 0);
@@ -37,7 +41,14 @@ public class Crypto {
             pemWriter.writeObject(new PemObject("PUBLIC KEY", key.getPublic().getEncoded()));
             pemWriter.flush();
             pemWriter.close();
-            mPreferences.edit().putString("RSA_PUBLIC_KEY", publicStringWriter.toString()).commit();
+
+                try {
+                    encryptedKey = AESHelper.encrypt(MainActivity.seedValue , publicStringWriter.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            mPreferences.edit().putString("RSA_PUBLIC_KEY", encryptedKey).commit();
 
         } catch (IOException e) {
             Log.e("RSA", e.getMessage());
@@ -52,7 +63,14 @@ public class Crypto {
             pemWriter.writeObject(new PemObject("PRIVATE KEY", keyPair.getPrivate().getEncoded()));
             pemWriter.flush();
             pemWriter.close();
-            mPreferences.edit().putString("RSA_PRIVATE_KEY", privateStringWriter.toString()).commit();
+
+                try {
+                    decryptedKey = AESHelper.encrypt(MainActivity.seedValue , privateStringWriter.toString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            mPreferences.edit().putString("RSA_PRIVATE_KEY", decryptedKey).commit();
 
         } catch (IOException e) {
             Log.e("RSA", e.getMessage());

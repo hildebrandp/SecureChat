@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 import android.util.Log;
+
+import com.example.pascal.securechat.MainActivity;
+
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -20,6 +23,9 @@ import javax.crypto.Cipher;
 
 public class RSA {
 
+    private static String encryptedKey;
+    private static String decryptedKey;
+
     public static SharedPreferences mPreferences;
 
     public static void init(Context context) {
@@ -32,7 +38,7 @@ public class RSA {
 
     private static final String TAG = RSA.class.getSimpleName();
 
-    private static final int KEY_SIZE = 1024;
+    private static final int KEY_SIZE = 2048;
 
 
     public static KeyPair generate() {
@@ -90,13 +96,27 @@ public class RSA {
     }
 
     public static String encryptWithStoredKey(String text) {
-        String strippedKey = Crypto.stripPublicKeyHeaders(mPreferences.getString("RSA_PRIVATE_KEY",null));
+
+        try {
+            decryptedKey = AESHelper.decrypt(MainActivity.seedValue, mPreferences.getString("RSA_PRIVATE_KEY", null));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        String strippedKey = Crypto.stripPublicKeyHeaders(encryptedKey);
         return encryptWithKey(strippedKey, text);
     }
 
     public static String decryptWithStoredKey(String text) {
         try {
-            String strippedKey = Crypto.stripPrivateKeyHeaders(mPreferences.getString("RSA_PUBLIC_KEY",null));
+
+            try {
+                decryptedKey = AESHelper.decrypt(MainActivity.seedValue, mPreferences.getString("RSA_PRIVATE_KEY", null));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            String strippedKey = Crypto.stripPrivateKeyHeaders(decryptedKey);
             PrivateKey privateKey = Crypto.getRSAPrivateKeyFromString(strippedKey);
             return decryptFromBase64(privateKey, text);
         } catch (Exception e) {
@@ -139,7 +159,6 @@ public class RSA {
             }
         }
     }
-
 
     public static String stringify(byte[] bytes) {
         return stringify(new String(bytes));

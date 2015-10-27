@@ -57,6 +57,7 @@ public class chatDbEntry {
     public void setCHAT_READ(String CHAT_READ) {
         this.CHAT_READ = CHAT_READ;
     }
+
     public String getCHAT_DATE() {
         return CHAT_DATE;
     }

@@ -11,9 +11,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-/**
- * Created by Pascal on 23.10.2015.
- */
+import crypto.AESHelper;
+
+
 public class enterkey extends AppCompatActivity{
 
     private static Button btnapplyenterkey;
@@ -26,6 +26,9 @@ public class enterkey extends AppCompatActivity{
 
     private boolean doubleBackToExitPressedOnce = false;
     private String result = "false";
+
+    private String encryptedKeyPublic;
+    private String encryptedKeyPrivate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +49,15 @@ public class enterkey extends AppCompatActivity{
             public void onClick(View v) {
                 if (txtpublickey.getText().toString() != "" && txtprivatekey.getText().toString() != "") {
 
-                    mPreferences.edit().putString("RSA_PUBLIC_KEY", txtpublickey.getText().toString()).commit();
-                    mPreferences.edit().putString("RSA_PRIVATE_KEY", txtprivatekey.getText().toString()).commit();
+                    try {
+                        encryptedKeyPrivate = AESHelper.encrypt(MainActivity.seedValue, txtprivatekey.getText().toString());
+                        encryptedKeyPublic  = AESHelper.encrypt(MainActivity.seedValue, txtpublickey.getText().toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    mPreferences.edit().putString("RSA_PUBLIC_KEY", encryptedKeyPublic).commit();
+                    mPreferences.edit().putString("RSA_PRIVATE_KEY", encryptedKeyPrivate).commit();
 
                     result = "true";
                     Intent returnIntent = new Intent();
