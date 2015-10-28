@@ -3,10 +3,12 @@ package com.example.pascal.securechat;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -15,6 +17,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -39,8 +42,6 @@ import crypto.AESHelper;
 import databases.chatSQLiteHelper;
 import databases.userEntryDataSource;
 import databases.userSQLiteHelper;
-
-import com.example.pascal.securechat.updateContacts;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
@@ -78,6 +79,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         chatSQLiteHelper chatdbHelper = new chatSQLiteHelper(this);
         newDBchat = chatdbHelper.getWritableDatabase();
 
+        datasourceUser = new userEntryDataSource(this);
+        datasourceUser.open();
 
         showuseremail = (TextView)findViewById(R.id.txtshowuseremail);
         showusername = (TextView)findViewById(R.id.txtshowusername);
@@ -107,8 +110,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             openfirststart();
         }else{
-            //update userinformation on menu
-            updateuserinfo();
 
             String decryptedKey = "";
             try {
@@ -117,14 +118,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 e.printStackTrace();
             }
             //get public key an test if it´s ok!!!
-            new checkPublicKey().execute(user.getString("USER_EMAIL",""), user.getString("USER_PASSWORD",""), decryptedKey);
-        }
+            new checkPublicKey().execute(user.getString("USER_EMAIL", ""), user.getString("USER_PASSWORD", ""), decryptedKey);
 
-        if(user.getString("RSA_PRIVATE_KEY","").equals("")){
-            createnewkey();
+            onAppStart();
         }
-
-        onAppStart();
 
     }
 
@@ -143,11 +140,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         openfirststart();
     }
 
-    private void onAppStart(){
-
-        updateContacts update = new updateContacts();
-        update.searchfornewcontacts(getApplicationContext());
-    }
 
     private void contacts(){
         Intent i = new Intent(this, myContacts.class);
@@ -161,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         startActivityForResult(i, 1);
     }
 
-    private void updateuserinfo(){
+    private void onAppStart(){
 
         showusername.setText(user.getString("USER_NAME","Error loading Data"));
         showuseremail.setText(user.getString("USER_EMAIL", "Error loading Data"));
@@ -177,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 if(result.equals("true")){
                     //update userinformation on menu
-                    updateuserinfo();
+                    onAppStart();
                     createnewkey();
                 }else{
                     finish();
@@ -221,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_changedata) {
 
         } else if (id == R.id.nav_logout) {
-
+            logout();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -342,10 +334,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             //Toast.makeText(getApplicationContext(), "Key revoke successful", Toast.LENGTH_LONG).show();
                         }else{
                             openfirststart();
-                            editor.putString("RSA_PRIVATE_KEY", "");
-                            editor.putString("RSA_PUBLIC_KEY", "");
-                            editor.putBoolean("firstrun", true);
-                            editor.commit();
+                            logout();
                             Toast.makeText(getApplicationContext(), "Wrong Key!", Toast.LENGTH_LONG).show();
 
                         }
@@ -361,4 +350,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
     }
+
+
 }
